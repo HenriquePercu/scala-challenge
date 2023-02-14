@@ -1,7 +1,7 @@
 package com.challenge
 
-import org.scalatest.funsuite.AnyFunSuite
 import com.challenge.EmailFormatter.breakEmailTextIntoLines
+import org.scalatest.funsuite.AnyFunSuite
 
 class EmailFormatterTest extends AnyFunSuite {
 
