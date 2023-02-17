@@ -27,7 +27,7 @@ object EmailController extends IOApp {
           emailRequest <- req.as[EmailFormatRequest]
           response <- {
             val formattedEmail = EmailFormatter.breakEmailTextIntoLines(emailRequest.email, emailRequest.lineSize).mkString("\n")
-            saveTextIntoFile(Stream.emit(formattedEmail)).compile.drain
+            saveTextIntoFile(formattedEmail).compile.drain
             Ok(EmailFormatResponse(formattedEmail).asJson)
           }
         } yield response

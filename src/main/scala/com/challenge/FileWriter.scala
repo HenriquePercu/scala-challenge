@@ -12,4 +12,8 @@ object FileWriter {
       .through(Files[IO].writeAll(Path("src/main/resources/emailFormatted.txt")))
   }
 
+  def saveTextIntoFile(email: String): Stream[IO, Unit] = {
+    saveTextIntoFile(Stream.emit(email))
+  }
+
 }
