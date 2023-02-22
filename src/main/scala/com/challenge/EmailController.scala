@@ -1,50 +1,29 @@
 package com.challenge
 
 import cats.effect._
-import cats.implicits._
-import com.challenge.FileWriter.saveTextIntoFile
-import com.challenge.model.{EmailFormatRequest, EmailFormatResponse}
-import fs2.Stream
+import com.challenge.model.{EmailDTO, EmailFormatRequest}
+import com.challenge.repository.EmailRepository
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl._
-import org.http4s.implicits._
-import org.http4s.server.blaze.BlazeServerBuilder
 
-object EmailController extends IOApp {
+class EmailController(emailRepository: EmailRepository) extends Http4sDsl[IO] {
+  private implicit val emailDecoder: EntityDecoder[IO, EmailFormatRequest] = jsonOf[IO, EmailFormatRequest]
 
-  private def formatRoutes[F[_] : Concurrent]: HttpRoutes[F] = {
-    val dsl = Http4sDsl[F]
-    import dsl._
+  val routes = HttpRoutes.of[IO] {
+    case GET -> Root / "email" =>
+      Ok(emailRepository.findAllEmails.map(_.asJson))
 
-    implicit val emailDecoder: EntityDecoder[F, EmailFormatRequest] = jsonOf[F, EmailFormatRequest]
+    case req@POST -> Root / "email" / "format" =>
+      for {
+        emailRequest <- req.as[EmailFormatRequest]
+        createdEmailDTO <- emailRepository.saveFormattedEmail(
+          new EmailDTO(emailRequest.email, EmailFormatter.breakEmailTextIntoLines(emailRequest.email, emailRequest.lineSize).mkString("\n")))
+        response <- Created(createdEmailDTO.asJson)
+      } yield response
 
-    HttpRoutes.of[F] {
-      case req@POST -> Root / "email" / "format" =>
-        for {
-          emailRequest <- req.as[EmailFormatRequest]
-          response <- {
-            val formattedEmail = EmailFormatter.breakEmailTextIntoLines(emailRequest.email, emailRequest.lineSize).mkString("\n")
-            saveTextIntoFile(formattedEmail).compile.drain
-            Ok(EmailFormatResponse(formattedEmail).asJson)
-          }
-        } yield response
-    }
-  }
-
-  private def routes[F[_] : Concurrent]: HttpApp[F] = {
-    formatRoutes[F].orNotFound
-  }
-
-  override def run(args: List[String]): IO[ExitCode] = {
-    BlazeServerBuilder[IO](runtime.compute)
-      .bindHttp(8080, "localhost")
-      .withHttpApp(routes)
-      .resource
-      .use(_ => IO.never)
-      .as(ExitCode.Success)
   }
 
 }
