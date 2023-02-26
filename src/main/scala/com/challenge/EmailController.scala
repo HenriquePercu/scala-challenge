@@ -10,7 +10,6 @@ import org.http4s.circe._
 import org.http4s.dsl._
 
 class EmailController(emailRepository: EmailRepository) extends Http4sDsl[IO] {
-  private implicit val emailDecoder: EntityDecoder[IO, EmailFormatRequest] = jsonOf[IO, EmailFormatRequest]
 
   val routes = HttpRoutes.of[IO] {
     case GET -> Root / "email" =>
