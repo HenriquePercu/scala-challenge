@@ -30,10 +30,11 @@ object ServerApp extends IOApp{
   }
 
   private def createServer(resources: Resources): IO[ExitCode] = {
+    val emailRepository = new EmailRepository(resources.transactor)
     for {
       exitCode <- BlazeServerBuilder[IO](global)
         .bindHttp(resources.config.server.port, resources.config.server.host)
-        .withHttpApp(new EmailController(new EmailRepository(resources.transactor)).routes.orNotFound).serve.compile.lastOrError
+        .withHttpApp(new EmailController(_ => emailRepository.findAllEmails, email => emailRepository.saveFormattedEmail(email)).routes.orNotFound).serve.compile.lastOrError
     } yield exitCode
   }
 

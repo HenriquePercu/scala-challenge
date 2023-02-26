@@ -1,9 +1,9 @@
 package com.challenge.model
 
 import cats.effect.IO
+import io.circe.generic.auto._
 import org.http4s.EntityDecoder
 import org.http4s.circe.jsonOf
-import io.circe.generic.auto._
 
 case class EmailFormatRequest(email: String, lineSize: Int)
 
