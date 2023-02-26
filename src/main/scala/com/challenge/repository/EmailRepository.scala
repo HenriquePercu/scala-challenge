@@ -1,18 +1,18 @@
 package com.challenge.repository
 
 import cats.effect.IO
-import com.challenge.model.EmailDTO
+import com.challenge.model.Email
 import doobie._
 import doobie.implicits._
 import fs2.Stream
 
 class EmailRepository(transactor: Transactor[IO]) {
-  def findAllEmails: Stream[IO, EmailDTO] = {
-    val findAllQuery: Query0[EmailDTO] = sql"select * from email".query[EmailDTO]
+  def findAllEmails: Stream[IO, Email] = {
+    val findAllQuery: Query0[Email] = sql"select * from email".query[Email]
     findAllQuery.stream.transact(transactor)
   }
 
-  def saveFormattedEmail(emailDTO: EmailDTO): IO[EmailDTO] = {
+  def saveFormattedEmail(emailDTO: Email): IO[Email] = {
     val saveQuery = sql"INSERT INTO email (email, formatted_email) VALUES (${emailDTO.email} , ${emailDTO.formattedEmail})"
       .update.withUniqueGeneratedKeys[Int]("id")
 

@@ -1,7 +1,7 @@
 package com.challenge
 
 import cats.effect._
-import com.challenge.model.{EmailDTO, EmailFormatRequest}
+import com.challenge.model.{Email, EmailFormatRequest}
 import com.challenge.repository.EmailRepository
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -20,7 +20,7 @@ class EmailController(emailRepository: EmailRepository) extends Http4sDsl[IO] {
       for {
         emailRequest <- req.as[EmailFormatRequest]
         createdEmailDTO <- emailRepository.saveFormattedEmail(
-          new EmailDTO(emailRequest.email, EmailFormatter.breakEmailTextIntoLines(emailRequest.email, emailRequest.lineSize).mkString("\n")))
+          new Email(emailRequest.email, EmailFormatter.breakEmailTextIntoLines(emailRequest.email, emailRequest.lineSize).mkString("\n")))
         response <- Created(createdEmailDTO.asJson)
       } yield response
 
